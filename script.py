@@ -1,12 +1,34 @@
 import os
+import io
 import subprocess
 import shutil
 from PIL import Image
+from PIL import ImageCms
 
 def run_cmd(cmd, silent=True):
     out = subprocess.getoutput(cmd)
     if not silent:
         print(out)
+
+def fix_color_profile():
+    print('fixing mask color profile')
+
+    def convert_to_srgb(img):
+        '''Convert PIL image to sRGB color space (if possible)'''
+        icc = img.info.get('icc_profile', '')
+        if icc:
+            io_handle = io.BytesIO(icc)     # virtual file
+            src_profile = ImageCms.ImageCmsProfile(io_handle)
+            dst_profile = ImageCms.createProfile('sRGB')
+            img = ImageCms.profileToProfile(img, src_profile, dst_profile)
+        return img
+
+    if os.path.isfile('input/mask.png'):
+        img = Image.open('input/mask.png')
+        img_conv = convert_to_srgb(img)
+        if img.info.get('icc_profile', '') != img_conv.info.get('icc_profile', ''):
+            # ICC profile was changed -> save converted file
+            img_conv.save('input/mask.png', icc_profile = img_conv.info.get('icc_profile',''))
 
 def decompose():
     print('decomposing video and mask')
@@ -74,6 +96,7 @@ def split(num):
     run_cmd('rm -r ./temp')
 
 if __name__ == '__main__':
+    fix_color_profile()
     decompose()
     resize(480, 256)
     split(10)
