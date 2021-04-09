@@ -2,6 +2,7 @@ import os
 import io
 import subprocess
 import shutil
+import sys, getopt
 from PIL import Image
 from PIL import ImageCms
 
@@ -69,8 +70,10 @@ def resize(width, height):
     resize_in_folder('./temp/v_decomp')
     resize_in_folder('./temp/m_decomp')
 
-def split(num):
+def split(num, keep_num):
     print('splitting into parts')
+    if keep_num:
+        print('keeping part %d' % keep_num)
 
     run_cmd('rm -r ./output')
     run_cmd('mkdir -p ./output')
@@ -82,6 +85,9 @@ def split(num):
         for i, image in enumerate(images):
             if i != 0 and i % num == 0:
                 subfolder += 1
+
+            if keep_num and subfolder != keep_num:
+                continue
 
             run_cmd('mkdir -p ./output/%d%s' % (subfolder, affix))
             shutil.move(os.path.join(folder, image), os.path.join('./output/%d%s' % (subfolder, affix), image))
@@ -96,8 +102,20 @@ def split(num):
     run_cmd('rm -r ./temp')
 
 if __name__ == '__main__':
-    fix_color_profile()
-    decompose()
-    resize(480, 256)
-    split(10)
+    _, args = getopt.getopt(sys.argv, ['fix', 'decompose', 'resize=', 'split=', 'keep='])
+    if '--fix' in args:
+        fix_color_profile()
+    if '--decompose' in args:
+        decompose()
+    resize_arg = next(iter([x for x in args if x.startswith('--resize')]))
+    if resize_arg:
+        dims = [int(x) for x in resize_arg.split('=')[1].split('x')]
+        resize(dims[0], dims[1])
+    split_arg = next(iter([x for x in args if x.startswith('--split')]))
+    keep_arg = next(iter([x for x in args if x.startswith('--keep')]))
+    if split_arg:
+        num = int(split_arg.split('=')[1])
+        if keep_arg:
+            keep_num = int(keep_arg.split('=')[1])
+        split(num, keep_num)
 
