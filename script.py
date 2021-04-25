@@ -70,7 +70,7 @@ def resize(width, height):
     resize_in_folder('./temp/v_decomp')
     resize_in_folder('./temp/m_decomp')
 
-def split(num, keep_num):
+def split(num, keep_num = None):
     print('splitting into parts')
     if keep_num:
         print('keeping part %d' % keep_num)
@@ -107,14 +107,15 @@ if __name__ == '__main__':
         fix_color_profile()
     if '--decompose' in args:
         decompose()
-    resize_arg = next(iter([x for x in args if x.startswith('--resize')]))
+    resize_arg = next(iter([x for x in args if x.startswith('--resize')]), None)
     if resize_arg:
         dims = [int(x) for x in resize_arg.split('=')[1].split('x')]
         resize(dims[0], dims[1])
-    split_arg = next(iter([x for x in args if x.startswith('--split')]))
-    keep_arg = next(iter([x for x in args if x.startswith('--keep')]))
+    split_arg = next(iter([x for x in args if x.startswith('--split')]), None)
+    keep_arg = next(iter([x for x in args if x.startswith('--keep')]), None)
     if split_arg:
         num = int(split_arg.split('=')[1])
+        keep_num = None
         if keep_arg:
             keep_num = int(keep_arg.split('=')[1])
         split(num, keep_num)
