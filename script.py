@@ -92,7 +92,8 @@ def split(num, keep_num = None):
             run_cmd('mkdir -p ./output/%d%s' % (subfolder, affix))
             shutil.move(os.path.join(folder, image), os.path.join('./output/%d%s' % (subfolder, affix), image))
 
-            if i % num == num - 1:
+            # Rename all images if this is the last one in the split, or the final image
+            if i % num == num - 1 or i == len(images) - 1:
                 run_cmd('cd ./output/%d%s && ls -v | cat -n | while read n f; do mv -n "$f" "$n.png"; done' % (subfolder, affix))
                 run_cmd(('cd ./output/%d%s && ' % (subfolder, affix)) + '''rename -e 's/\d+/sprintf("%05d",$& - 1)/e' -- *.png''')
 
