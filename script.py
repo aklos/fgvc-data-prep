@@ -79,7 +79,7 @@ def split(num, keep_num = None):
     run_cmd('mkdir -p ./output')
 
     def split_folder(folder, affix):
-        images = [f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+        images = sorted([f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))])
 
         subfolder = 1
         for i, image in enumerate(images):
